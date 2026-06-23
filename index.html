@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ForgeAlly — Peer Communication Redefined</title>
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="ForgeAlly is a premium, lightweight peer communication platform inspired by Discord and crafted with Apple's clean design aesthetics. Connect, voice chat, and share seamlessly.">
+    
+    <!-- Google Fonts for premium typography fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <!-- Top Premium Navigation Bar -->
+    <header class="app-header">
+        <div class="header-container">
+            <a href="#download" class="logo" id="nav-logo">
+                <span class="logo-text">ForgeAlly</span>
+            </a>
+            <nav class="nav-links">
+                <div class="nav-indicator" id="nav-indicator"></div>
+                <a href="#home" id="nav-home">Home</a>
+                <a href="#download" class="active" id="nav-download">Download</a>
+                <a href="#community" id="nav-community">Community</a>
+                <a href="#support" id="nav-support">Support</a>
+                <a href="#about" id="nav-about">About</a>
+                <a href="#login" id="nav-login" style="display: inline-flex; align-items: center; gap: 4px;">
+                    <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Login
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Floating Support Sub-Header (Only visible when Support is active) -->
+    <div class="support-sub-header" id="support-sub-header">
+        <nav class="sub-nav-links">
+            <div class="sub-nav-indicator" id="sub-nav-indicator"></div>
+            <a href="#support-help" class="active" id="sub-nav-help">Help Center</a>
+            <a href="#support-feedback" id="sub-nav-feedback">Feedback</a>
+            <a href="#support-request" id="sub-nav-request">Submit a Request</a>
+        </nav>
+    </div>
+
+    <!-- Floating Community Sub-Header (Only visible when Community is active) -->
+    <div class="community-sub-header" id="community-sub-header">
+        <nav class="sub-nav-links">
+            <div class="sub-nav-indicator"></div>
+            <a href="#community-discover" class="active" id="sub-nav-discover">Discover</a>
+            <a href="#community-events" id="sub-nav-events">Events</a>
+            <a href="#community-guidelines" id="sub-nav-guidelines">Guidelines</a>
+        </nav>
+    </div>
+
+    <!-- Sections Container -->
+    <main class="sections-container">
+        <!-- Section: Home (Active Chat on iPad + Scroll Story) -->
+        <section id="home" class="hero-section">
+            <!-- Ambient lighting blobs for premium Siri-like background effect -->
+            <div class="ambient-glow glow-1"></div>
+            <div class="ambient-glow glow-2"></div>
+            <div class="ambient-glow glow-3"></div>
+
+            <!-- Panel 1: Original Hero (iPad Mockup on Right) -->
+            <div class="home-panel hero-panel">
+                <div class="hero-content">
+                    <div class="hero-text-block">
+                        <h1 class="hero-title" id="home-title">ForgeAlly</h1>
+                        <p class="hero-subtitle">
+                            Create your Allys. Voice, video, and text communication built for your needs. Experience a best Peer-Communication Platform
+                        </p>
+                        <div class="hero-actions-container">
+                            <a href="#download" class="btn-primary" id="home-btn-explore" style="text-decoration: none;">Download</a>
+                            <a href="#about" class="btn-secondary" id="home-btn-learn" style="text-decoration: none; display: inline-flex; justify-content: center; align-items: center;">
+                                Explore ForgeAlly <i data-lucide="arrow-right" class="icon-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="hero-visual-block">
+                        <div class="ipad-mockup" id="home-ipad">
+                            <div class="ipad-camera"></div>
+                            <div class="ipad-screen">
+                                <div class="ipad-app-container">
+                                    <div class="ipad-sidebar-servers">
+                                        <div class="ipad-ally-icon active">FA</div>
+                                        <div class="ipad-ally-icon">🎨</div>
+                                        <div class="ipad-ally-icon">⚛️</div>
+                                        <div class="ipad-ally-icon">🎮</div>
+                                    </div>
+                                    <div class="ipad-sidebar-channels">
+                                        <div class="ipad-sidebar-header">ForgeAlly Global</div>
+                                        <div class="ipad-channel-group">TEXT CHANNELS</div>
+                                        <div class="ipad-channel-item active"><i data-lucide="hash" class="ipad-icon"></i> welcome</div>
+                                        <div class="ipad-channel-item"><i data-lucide="hash" class="ipad-icon"></i> announcements</div>
+                                        <div class="ipad-channel-item"><i data-lucide="hash" class="ipad-icon"></i> design-lounge</div>
+                                        <div class="ipad-channel-group">VOICE CHANNELS</div>
+                                        <div class="ipad-channel-item"><i data-lucide="volume-2" class="ipad-icon"></i> Voice Lobby</div>
+                                    </div>
+                                    <div class="ipad-chat-area">
+                                        <div class="ipad-chat-header">
+                                            <div class="ipad-chat-header-title">
+                                                <i data-lucide="hash" class="ipad-icon-welcome"></i> welcome
+                                            </div>
+                                        </div>
+                                        <div class="ipad-chat-messages" id="ipad-chat-messages">
+                                            <!-- Messages will be generated live here -->
+                                        </div>
+                                        <!-- Typing Indicator Overlay -->
+                                        <div class="ipad-typing-indicator" id="ipad-typing-indicator">
+                                            <span class="ipad-typing-text"></span>
+                                            <div class="ipad-typing-dots">
+                                                <span></span><span></span><span></span>
+                                            </div>
+                                        </div>
+                                        <div class="ipad-chat-input-wrapper">
+                                            <div class="ipad-chat-input">
+                                                <span>Message #welcome</span>
+                                                <i data-lucide="plus-circle" class="ipad-icon-plus"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 2: Scroll Reveal Text Sequences -->
+            <div class="home-panel scroll-text-panel">
+                <div class="scroll-text-container">
+                    <!-- Blurred gradient background mesh -->
+                    <div class="scroll-bg-glow glow-1"></div>
+                    <div class="scroll-bg-glow glow-2"></div>
+
+                    <div class="scroll-reveal-text" id="reveal-text-1">
+                        Create Allys, Join Voice Chat Rooms, Work as you like!
+                    </div>
+                    <div class="scroll-reveal-text" id="reveal-text-2">
+                        Create Multiple Allys and Invite your Friends, Colleagues, Family, Mentors to your own Allys
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel 3: Desktop Download Options -->
+            <div class="home-panel download-options-panel">
+                <div class="download-options-container">
+                    <h3>Download</h3>
+                    <p class="download-sub">Get the full ForgeAlly experience on your computer.</p>
+                    <div class="download-buttons-group">
+                        <a href="#" class="download-card-btn win-btn" onclick="event.preventDefault(); alert('Windows download coming soon!');">
+                            <div class="btn-logo">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                    <path d="M0 3.449L9.75 2.1v9.451H0V3.449zM0 12.45h9.75v9.451L0 20.551v-8.102zM10.95 1.937L24 0v11.6H10.95V1.937zm13.05 10.513v9.55l-13.05-1.937V12.45H24z"/>
+                                </svg>
+                            </div>
+                            <div class="btn-info">
+                                <span class="btn-label">Download for</span>
+                                <span class="btn-title">Windows</span>
+                            </div>
+                        </a>
+                        <a href="#" class="download-card-btn mac-btn" onclick="event.preventDefault(); alert('macOS download coming soon!');">
+                            <div class="btn-logo">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.2.67-2.92 1.49-.62.71-1.16 1.85-1.01 2.96 1.1.09 2.22-.57 2.94-1.39z"/>
+                                </svg>
+                            </div>
+                            <div class="btn-info">
+                                <span class="btn-label">Download for</span>
+                                <span class="btn-title">macOS</span>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: About (Design & Mission) -->
+        <section id="about" class="hero-section">
+            <!-- Ambient lighting blobs for premium Siri-like background effect -->
+            <div class="ambient-glow glow-1"></div>
+            <div class="ambient-glow glow-2"></div>
+            <div class="ambient-glow glow-3"></div>
+
+            <div class="hero-content">
+                <!-- Left Column: Branding & Mission -->
+                <div class="hero-text-block">
+                    <h1 class="hero-title about-title">About Us</h1>
+                    <p class="about-description">
+                        ForgeAlly was founded to bridge the communication gap between mentors, creators, engineers, and communities. Inspired by the idea that "forge" represents determination toward a goal and "ally" represents trusted friends and peers, our platform fosters meaningful and productive connections.
+                    </p>
+                </div>
+
+                <!-- Right Column: Contact Links (Mail & LinkedIn Inline SVGs) -->
+                <div class="hero-visual-block">
+                    <div class="about-contact-container">
+                        <h3 class="about-subheading">Connect with Us</h3>
+                        <div class="about-contact-list">
+                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=services.forgeally@gmail.com" target="_blank" class="contact-item">
+                                <div class="contact-icon bg-red-light">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+                                    </svg>
+                                </div>
+                                <div class="contact-details">
+                                    <span class="contact-label">Email Support</span>
+                                    <span class="contact-value">services.forgeally@gmail.com</span>
+                                </div>
+                            </a>
+                            <a href="https://linkedin.com/company/forgeally" target="_blank" class="contact-item">
+                                <div class="contact-icon bg-blue-light">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/>
+                                        <rect width="4" height="12" x="2" y="9"/>
+                                        <circle cx="4" cy="4" r="2"/>
+                                    </svg>
+                                </div>
+                                <div class="contact-details">
+                                    <span class="contact-label">LinkedIn</span>
+                                    <span class="contact-value">ForgeAlly</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Download (Current Screen) -->
+        <section id="download" class="hero-section active">
+            <!-- Ambient lighting blobs for premium Siri-like background effect -->
+            <div class="ambient-glow glow-1"></div>
+            <div class="ambient-glow glow-2"></div>
+            <div class="ambient-glow glow-3"></div>
+
+            <!-- Central Content Wrapper -->
+            <div class="hero-content">
+                <div class="hero-text-block">
+                    <h1 class="hero-title" id="main-title">ForgeAlly</h1>
+                    <p class="hero-subtitle">
+                        Create your Allys. Voice, video, and text communication built for your needs. Experience a best Peer-Communication Platform
+                    </p>
+                    <div class="hero-actions-container">
+                        <a href="#login" class="btn-primary" id="hero-btn-launch" style="text-decoration: none;">Open ForgeAlly in Browser</a>
+                        <div class="download-dropdown-container" data-active-os="win">
+                            <button class="download-split-btn" id="hero-btn-download">
+                                <i data-lucide="download" class="icon-left"></i>Download for 
+                                <span id="active-os-logo-container" style="margin-left: 6px; display: inline-flex; align-items: center;">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle;">
+                                        <path d="M0 3.449L9.75 2.1v9.451H0V3.449zM0 12.45h9.75v9.451L0 20.551v-8.102zM10.95 1.937L24 0v11.6H10.95V1.937zm13.05 10.513v9.55l-13.05-1.937V12.45H24z"/>
+                                    </svg>
+                                </span>
+                            </button>
+                            <button class="download-toggle-trigger" id="hero-btn-toggle" aria-label="Toggle download options">
+                                <i data-lucide="chevron-down"></i>
+                            </button>
+                            <div class="download-dropdown-menu" id="download-dropdown-menu">
+                                <a href="#" class="dropdown-item" id="dropdown-os-option" onclick="event.preventDefault();">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="vertical-align: middle;">
+                                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.2.67-2.92 1.49-.62.71-1.16 1.85-1.01 2.96 1.1.09 2.22-.57 2.94-1.39z"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hero-visual-block">
+                    <!-- Floating Chat System (Non-interactive) -->
+                    <div class="floating-chat-card">
+                        <div class="chat-card-header">
+                            <div class="chat-card-title">
+                                <i data-lucide="hash" class="chat-hash-icon"></i>
+                                <span>general</span>
+                            </div>
+                            <div class="chat-card-status">
+                                <span class="online-indicator"></span>
+                                <span>12 Online</span>
+                            </div>
+                        </div>
+                        <div class="chat-card-body">
+                            <div class="chat-card-msg">
+                                <div class="chat-avatar bg-blue">F</div>
+                                <div class="chat-msg-content">
+                                    <div class="chat-msg-meta">
+                                        <span class="chat-author">ForgeAlly</span>
+                                        <span class="chat-time">12:30 PM</span>
+                                    </div>
+                                    <p class="chat-text">Welcome to the new ForgeAlly Ally! Let me know if the latency is fine.</p>
+                                </div>
+                            </div>
+                            <div class="chat-card-msg">
+                                <div class="chat-avatar bg-purple">N</div>
+                                <div class="chat-msg-content">
+                                    <div class="chat-msg-meta">
+                                        <span class="chat-author">Nila</span>
+                                        <span class="chat-time">12:31 PM</span>
+                                    </div>
+                                    <p class="chat-text">The audio channels are incredibly clear. Zero delay on screen shares too! 🙌</p>
+                                </div>
+                            </div>
+                            <div class="chat-card-msg">
+                                <div class="chat-avatar bg-green">S</div>
+                                <div class="chat-msg-content">
+                                    <div class="chat-msg-meta">
+                                        <span class="chat-author">Sidharth</span>
+                                        <span class="chat-time">12:32 PM</span>
+                                    </div>
+                                    <p class="chat-text">This white theme looks stellar. Much easier on the eyes during daytime sessions.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-card-input">
+                            <div class="mock-input">Message #general</div>
+                            <div class="mock-input-icons">
+                                <i data-lucide="smile"></i>
+                                <i data-lucide="paperclip"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Community (Discover, Events, Guidelines) -->
+        <section id="community" class="hero-section">
+            <!-- Ambient lighting blobs for premium Siri-like background effect -->
+            <div class="ambient-glow glow-1"></div>
+            <div class="ambient-glow glow-2"></div>
+            <div class="ambient-glow glow-3"></div>
+
+            <div class="hero-content support-portal-container">
+                <!-- Sub-View: Discover -->
+                <div class="support-sub-view active" id="community-discover">
+                    <div class="support-header-block">
+                        <h1 class="support-title">Discover</h1>
+                        <p class="support-subtitle">Find your peers. Join public Allys on ForgeAlly.</p>
+                    </div>
+                    <!-- Search Bar -->
+                    <div class="help-search-wrapper">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" placeholder="Search Allys by gaming, design, programming..." class="help-search-input">
+                    </div>
+                    <!-- Allys Grid -->
+                    <div class="community-grid">
+                        <div class="ally-card">
+                            <div class="ally-banner bg-gaming"></div>
+                            <div class="ally-info">
+                                <div class="ally-avatar">🎮</div>
+                                <div class="ally-tags">
+                                    <span class="tag-pill">Gaming</span>
+                                    <span class="tag-pill">Esports</span>
+                                </div>
+                                <h5>Apex Clan</h5>
+                                <p>The ultimate hub for competitive FPS players and custom squad tournaments.</p>
+                                <div class="ally-meta">
+                                    <span><span class="online-indicator"></span> 1,240 Online</span>
+                                    <span>15.4k Members</span>
+                                </div>
+                                <button class="btn-ally-join">Join Ally</button>
+                            </div>
+                        </div>
+                        <div class="ally-card">
+                            <div class="ally-banner bg-design"></div>
+                            <div class="ally-info">
+                                <div class="ally-avatar">🎨</div>
+                                <div class="ally-tags">
+                                    <span class="tag-pill">Design</span>
+                                    <span class="tag-pill">Creative</span>
+                                </div>
+                                <h5>Design Lounge</h5>
+                                <p>Where UI/UX designers, creators, and brand designers share work and critique.</p>
+                                <div class="ally-meta">
+                                    <span><span class="online-indicator"></span> 642 Online</span>
+                                    <span>8.2k Members</span>
+                                </div>
+                                <button class="btn-ally-join">Join Ally</button>
+                            </div>
+                        </div>
+                        <div class="ally-card">
+                            <div class="ally-banner bg-code"></div>
+                            <div class="ally-info">
+                                <div class="ally-avatar">💻</div>
+                                <div class="ally-tags">
+                                    <span class="tag-pill">Programming</span>
+                                    <span class="tag-pill">Mentorship</span>
+                                </div>
+                                <h5>DevForge</h5>
+                                <p>Connect with mentors, build projects, and discuss system design.</p>
+                                <div class="ally-meta">
+                                    <span><span class="online-indicator"></span> 981 Online</span>
+                                    <span>12.1k Members</span>
+                                </div>
+                                <button class="btn-ally-join">Join Ally</button>
+                            </div>
+                        </div>
+                        <div class="ally-card">
+                            <div class="ally-banner bg-ai"></div>
+                            <div class="ally-info">
+                                <div class="ally-avatar">🤖</div>
+                                <div class="ally-tags">
+                                    <span class="tag-pill">AI</span>
+                                    <span class="tag-pill">Technology</span>
+                                </div>
+                                <h5>AI Lab</h5>
+                                <p>Explore deep learning models, prompt engineering, and building agents.</p>
+                                <div class="ally-meta">
+                                    <span><span class="online-indicator"></span> 812 Online</span>
+                                    <span>9.5k Members</span>
+                                </div>
+                                <button class="btn-ally-join">Join Ally</button>
+                            </div>
+                        </div>
+                        <div class="ally-card">
+                            <div class="ally-banner bg-cinema"></div>
+                            <div class="ally-info">
+                                <div class="ally-avatar">🍿</div>
+                                <div class="ally-tags">
+                                    <span class="tag-pill">Entertainment</span>
+                                    <span class="tag-pill">Content Creation</span>
+                                </div>
+                                <h5>CineStream</h5>
+                                <p>Watch movies together, share creation tips, and review scripts.</p>
+                                <div class="ally-meta">
+                                    <span><span class="online-indicator"></span> 520 Online</span>
+                                    <span>6.8k Members</span>
+                                </div>
+                                <button class="btn-ally-join">Join Ally</button>
+                            </div>
+                        </div>
+                        <div class="ally-card">
+                            <div class="ally-banner bg-music"></div>
+                            <div class="ally-info">
+                                <div class="ally-avatar">🎵</div>
+                                <div class="ally-tags">
+                                    <span class="tag-pill">Music</span>
+                                    <span class="tag-pill">Production</span>
+                                </div>
+                                <h5>SoundWave</h5>
+                                <p>Share beats, host karaoke, and collaborate on music production.</p>
+                                <div class="ally-meta">
+                                    <span><span class="online-indicator"></span> 430 Online</span>
+                                    <span>5.1k Members</span>
+                                </div>
+                                <button class="btn-ally-join">Join Ally</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-View: Events -->
+                <div class="support-sub-view" id="community-events">
+                    <div class="support-header-block">
+                        <h1 class="support-title">Events</h1>
+                        <p class="support-subtitle">Participate in workshops, gaming lobbies, and community panels.</p>
+                    </div>
+                    <!-- Events Timeline -->
+                    <div class="events-list">
+                        <div class="event-card">
+                            <div class="event-date-badge">
+                                <span class="event-month">JUN</span>
+                                <span class="event-day">28</span>
+                            </div>
+                            <div class="event-details">
+                                <span class="event-tag bg-pink-light">WORKSHOP</span>
+                                <h5>UI/UX Design Masterclass</h5>
+                                <p>Learn Apple-minimalist design workflows and layout techniques directly from lead creators.</p>
+                                <div class="event-host">
+                                    <span>Hosted by <strong>ForgeAlly Design Team</strong></span>
+                                    <span>• 7:00 PM (GMT)</span>
+                                </div>
+                            </div>
+                            <button class="btn-secondary" onclick="alert('RSVP registered successfully!');">RSVP</button>
+                        </div>
+                        <div class="event-card">
+                            <div class="event-date-badge">
+                                <span class="event-month">JUL</span>
+                                <span class="event-day">04</span>
+                            </div>
+                            <div class="event-details">
+                                <span class="event-tag bg-blue-light">TOURNAMENT</span>
+                                <h5>DevForge Hackathon 2026</h5>
+                                <p>Build lightweight P2P communication extensions. Cash prizes and mentor roles awarded.</p>
+                                <div class="event-host">
+                                    <span>Hosted by <strong>DevForge</strong></span>
+                                    <span>• 10:00 AM (GMT)</span>
+                                </div>
+                            </div>
+                            <button class="btn-secondary" onclick="alert('RSVP registered successfully!');">RSVP</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-View: Guidelines -->
+                <div class="support-sub-view" id="community-guidelines">
+                    <div class="support-header-block">
+                        <h1 class="support-title">Guidelines</h1>
+                        <p class="support-subtitle">Our values and expectations for maintaining a collaborative space.</p>
+                    </div>
+                    <!-- Guidelines Container -->
+                    <div class="guidelines-container">
+                        <div class="guideline-rule">
+                            <div class="rule-num">01</div>
+                            <div class="rule-content">
+                                <h5>Respectful Communication</h5>
+                                <p>ForgeAlly is built on connection. Treat all peers and mentors with courtesy. Harassment or hate speech is strictly prohibited.</p>
+                            </div>
+                        </div>
+                        <div class="guideline-rule">
+                            <div class="rule-num">02</div>
+                            <div class="rule-content">
+                                <h5>No Spam or Promotion</h5>
+                                <p>Do not spam channels or DMs with ads or links. Keep promotional material confined to designated lounge channels.</p>
+                            </div>
+                        </div>
+                        <div class="guideline-rule">
+                            <div class="rule-num">03</div>
+                            <div class="rule-content">
+                                <h5>Collaboration and Sharing</h5>
+                                <p>We encourage helping others learn. Sharing files, notes, and mentoring help makes the community forge stronger goals.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Login (Open in Browser) -->
+        <section id="login" class="hero-section">
+            <!-- Staggered scrolling chat background -->
+            <div class="login-chat-flow-bg">
+                <div class="chat-column">
+                    <div class="flow-chat-card"><div class="avatar bg-blue">F</div><div><strong>ForgeBot</strong><p>Welcome to ForgeAlly!</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-purple">N</div><div><strong>Nila</strong><p>The screen shares are crystal clear! 🚀</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-green">S</div><div><strong>Sidharth</strong><p>Minimalist design is gorgeous.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">A</div><div><strong>Alex</strong><p>Anyone up for a game of Apex? 🎮</p></div></div>
+                    <!-- Duplicate for infinite scroll -->
+                    <div class="flow-chat-card"><div class="avatar bg-blue">F</div><div><strong>ForgeBot</strong><p>Welcome to ForgeAlly!</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-purple">N</div><div><strong>Nila</strong><p>The screen shares are crystal clear! 🚀</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-green">S</div><div><strong>Sidharth</strong><p>Minimalist design is gorgeous.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">A</div><div><strong>Alex</strong><p>Anyone up for a game of Apex? 🎮</p></div></div>
+                </div>
+                <div class="chat-column reverse">
+                    <div class="flow-chat-card"><div class="avatar bg-green">S</div><div><strong>Sidharth</strong><p>I am coding a new P2P extension.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">F</div><div><strong>ForgeBot</strong><p>Need help? Ask me anytime.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-purple">N</div><div><strong>Nila</strong><p>Join the Design Lounge today!</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">M</div><div><strong>Mentor</strong><p>Let's review the roadmap.</p></div></div>
+                    <!-- Duplicate for infinite scroll -->
+                    <div class="flow-chat-card"><div class="avatar bg-green">S</div><div><strong>Sidharth</strong><p>I am coding a new P2P extension.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">F</div><div><strong>ForgeBot</strong><p>Need help? Ask me anytime.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-purple">N</div><div><strong>Nila</strong><p>Join the Design Lounge today!</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">M</div><div><strong>Mentor</strong><p>Let's review the roadmap.</p></div></div>
+                </div>
+                <div class="chat-column">
+                    <div class="flow-chat-card"><div class="avatar bg-purple">N</div><div><strong>Nila</strong><p>New guidelines look great.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-green">S</div><div><strong>Sidharth</strong><p>Will be online in 5 minutes.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">A</div><div><strong>Alex</strong><p>Check the events calendar.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">F</div><div><strong>ForgeBot</strong><p>Connecting you to nearest peer.</p></div></div>
+                    <!-- Duplicate for infinite scroll -->
+                    <div class="flow-chat-card"><div class="avatar bg-purple">N</div><div><strong>Nila</strong><p>New guidelines look great.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-green">S</div><div><strong>Sidharth</strong><p>Will be online in 5 minutes.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">A</div><div><strong>Alex</strong><p>Check the events calendar.</p></div></div>
+                    <div class="flow-chat-card"><div class="avatar bg-blue">F</div><div><strong>ForgeBot</strong><p>Connecting you to nearest peer.</p></div></div>
+                </div>
+            </div>
+
+            <!-- Centered Premium Split-Screen Login Modal -->
+            <div class="login-modal-wrapper">
+                <div class="login-modal-container">
+                    <!-- Left: Standard Username/Password Login -->
+                    <div class="login-form-side">
+                        <div class="login-header">
+                            <span class="logo-text">ForgeAlly</span>
+                            <h2>Welcome back!</h2>
+                            <p>We're so excited to see you again!</p>
+                        </div>
+                        <form class="login-form" onsubmit="event.preventDefault(); alert('Logged in successfully!');">
+                            <div class="form-group">
+                                <label for="login-user">Email or Username</label>
+                                <input type="text" id="login-user" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="login-pass">Password</label>
+                                <input type="password" id="login-pass" required>
+                            </div>
+                            <a href="#" class="forgot-pass-link" onclick="event.preventDefault(); alert('Password reset link sent to your email.');">Forgot your password?</a>
+                            <button type="submit" class="btn-primary login-btn">Log In</button>
+                            <span class="register-link">Need an account? <a href="#" onclick="event.preventDefault(); alert('Registration system coming soon!');">Register</a></span>
+                        </form>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="login-modal-divider"></div>
+
+                    <!-- Right: Login via Phone QR / SMS -->
+                    <div class="login-phone-side">
+                        <div class="login-header">
+                            <h3>Log in with Phone</h3>
+                            <p>Enter your phone number or scan the QR code to log in instantly.</p>
+                        </div>
+                        
+                        <!-- Tabs to choose Phone SMS or QR Code -->
+                        <div class="phone-tabs">
+                            <button class="phone-tab-btn active" id="btn-phone-sms">SMS Login</button>
+                            <button class="phone-tab-btn" id="btn-phone-qr">QR Code</button>
+                        </div>
+
+                        <!-- SMS Login form -->
+                        <div class="phone-sms-container" id="phone-sms-view">
+                            <form class="login-form" onsubmit="event.preventDefault(); alert('Verification SMS code sent!');">
+                                <div class="form-group">
+                                    <label for="login-phone">Phone Number</label>
+                                    <div class="phone-input-group">
+                                        <select id="phone-country-code" class="phone-country-select">
+                                            <option value="+1" data-placeholder="(555) 000-0000">🇺🇸 +1</option>
+                                            <option value="+91" data-placeholder="98765 43210">🇮🇳 +91</option>
+                                            <option value="+44" data-placeholder="7911 123456">🇬🇧 +44</option>
+                                            <option value="+1" data-placeholder="(555) 000-0000">🇨🇦 +1</option>
+                                            <option value="+49" data-placeholder="170 1234567">🇩🇪 +49</option>
+                                            <option value="+33" data-placeholder="6 12 34 56 78">🇫🇷 +33</option>
+                                            <option value="+81" data-placeholder="90-1234-5678">🇯🇵 +81</option>
+                                            <option value="+61" data-placeholder="412 345 678">🇦🇺 +61</option>
+                                            <option value="+65" data-placeholder="8123 4567">🇸🇬 +65</option>
+                                            <option value="+55" data-placeholder="(11) 91234-5678">🇧🇷 +55</option>
+                                            <option value="+27" data-placeholder="082 123 4567">🇿🇦 +27</option>
+                                            <option value="+971" data-placeholder="50 123 4567">🇦🇪 +971</option>
+                                        </select>
+                                        <input type="tel" id="login-phone" placeholder="(555) 000-0000" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn-secondary login-btn">Send Code</button>
+                            </form>
+                        </div>
+
+                        <!-- QR Code Container -->
+                        <div class="phone-qr-container" id="phone-qr-view" style="display: none;">
+                            <div class="mock-qr-code">
+                                <svg viewBox="0 0 100 100" class="qr-svg">
+                                    <rect width="100" height="100" fill="white"/>
+                                    <rect x="10" y="10" width="20" height="20" fill="black"/>
+                                    <rect x="13" y="13" width="14" height="14" fill="white"/>
+                                    <rect x="16" y="16" width="8" height="8" fill="black"/>
+                                    
+                                    <rect x="70" y="10" width="20" height="20" fill="black"/>
+                                    <rect x="73" y="13" width="14" height="14" fill="white"/>
+                                    <rect x="76" y="16" width="8" height="8" fill="black"/>
+                                    
+                                    <rect x="10" y="70" width="20" height="20" fill="black"/>
+                                    <rect x="13" y="73" width="14" height="14" fill="white"/>
+                                    <rect x="16" y="76" width="8" height="8" fill="black"/>
+
+                                    <rect x="40" y="40" width="20" height="20" fill="black"/>
+                                    <rect x="45" y="45" width="10" height="10" fill="white"/>
+                                    
+                                    <rect x="40" y="15" width="5" height="15" fill="black"/>
+                                    <rect x="50" y="25" width="10" height="5" fill="black"/>
+                                    <rect x="15" y="45" width="15" height="5" fill="black"/>
+                                    <rect x="75" y="45" width="5" height="15" fill="black"/>
+                                    <rect x="45" y="75" width="15" height="5" fill="black"/>
+                                    <rect x="80" y="70" width="10" height="10" fill="black"/>
+                                </svg>
+                                <div class="qr-logo-overlay">FA</div>
+                            </div>
+                            <span class="qr-instructions">Scan this with the <strong>ForgeAlly mobile app</strong> to log in instantly.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Support (Help Center, Feedback, Submit Request) -->
+        <section id="support" class="hero-section">
+            <!-- Ambient lighting blobs for premium Siri-like background effect -->
+            <div class="ambient-glow glow-1"></div>
+            <div class="ambient-glow glow-2"></div>
+            <div class="ambient-glow glow-3"></div>
+
+            <div class="hero-content support-portal-container">
+                <!-- Sub-View: Help Center (Default) -->
+                <div class="support-sub-view active" id="support-help">
+                    <div class="support-header-block">
+                        <h1 class="support-title">Help Center</h1>
+                        <p class="support-subtitle">Search for answers or browse help topics below.</p>
+                    </div>
+                    <!-- Help Search Bar -->
+                    <div class="help-search-wrapper">
+                        <i data-lucide="search" class="search-icon"></i>
+                        <input type="text" placeholder="Search guides, setup help, or error codes..." class="help-search-input">
+                    </div>
+                    <!-- Category Cards -->
+                    <div class="help-categories-grid">
+                        <div class="help-cat-card">
+                            <i data-lucide="rocket" class="cat-icon text-blue"></i>
+                            <h5>Getting Started</h5>
+                            <p>Learn how to configure your first Ally and connect with friends.</p>
+                        </div>
+                        <div class="help-cat-card">
+                            <i data-lucide="video" class="cat-icon text-pink"></i>
+                            <h5>Voice & Video</h5>
+                            <p>Troubleshoot mic permissions, webcam latency, and audio loops.</p>
+                        </div>
+                        <div class="help-cat-card">
+                            <i data-lucide="sliders" class="cat-icon text-orange"></i>
+                            <h5>Ally Config</h5>
+                            <p>Manage permissions, channels, roles, and integration webhooks.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sub-View: Feedback -->
+                <div class="support-sub-view" id="support-feedback">
+                    <div class="support-header-block">
+                        <h1 class="support-title">Share Feedback</h1>
+                        <p class="support-subtitle">Help us shape the future of peer-to-peer communication.</p>
+                    </div>
+                    <!-- Feedback Form -->
+                    <form class="support-form" onsubmit="event.preventDefault(); alert('Thank you for your feedback!');">
+                        <div class="form-group">
+                            <label>Rate your experience</label>
+                            <div class="rating-stars" id="feedback-stars">
+                                <i data-lucide="star" class="star-icon active" data-index="1"></i>
+                                <i data-lucide="star" class="star-icon active" data-index="2"></i>
+                                <i data-lucide="star" class="star-icon active" data-index="3"></i>
+                                <i data-lucide="star" class="star-icon active" data-index="4"></i>
+                                <i data-lucide="star" class="star-icon" data-index="5"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="feedback-message">What can we improve?</label>
+                            <textarea id="feedback-message" placeholder="Tell us what you love or what needs work..." rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Submit Feedback</button>
+                    </form>
+                </div>
+
+                <!-- Sub-View: Submit a Request -->
+                <div class="support-sub-view" id="support-request">
+                    <div class="support-header-block">
+                        <h1 class="support-title">Submit a Request</h1>
+                        <p class="support-subtitle">Can't find what you need? Send a ticket directly to our engineers.</p>
+                    </div>
+                    <!-- Ticket Request Form -->
+                    <form class="support-form" onsubmit="event.preventDefault(); alert('Ticket submitted successfully!'); this.reset();">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="req-email">Your Email Address</label>
+                                <input type="email" id="req-email" placeholder="you@example.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="req-category">Ticket Category</label>
+                                <select id="req-category">
+                                    <option>Account Access</option>
+                                    <option>Voice Quality Issue</option>
+                                    <option>Billing & Premium</option>
+                                    <option>Bug Report</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="req-subject">Subject</label>
+                            <input type="text" id="req-subject" placeholder="Summarize your issue..." required>
+                        </div>
+                        <div class="form-group">
+                            <label for="req-desc">Description of the problem</label>
+                            <textarea id="req-desc" placeholder="Include as many details as possible so we can help you quickly..." rows="4" required></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary">Submit Request</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Bar -->
+    <footer class="app-footer">
+        <p>&copy; 2026 ForgeAlly Inc. All rights reserved. Crafted with minimalist excellence.</p>
+    </footer>
+
+    <!-- Forge AI Floating Chatbot -->
+    <div class="forge-chat-container">
+        <!-- Floating chat trigger bubble button -->
+        <button class="forge-chat-trigger" id="forge-chat-trigger" aria-label="Open Forge AI Chat">
+            <i data-lucide="message-square" id="forge-chat-icon"></i>
+        </button>
+
+        <!-- Glassmorphism Chat Panel -->
+        <div class="forge-chat-panel" id="forge-chat-panel">
+            <div class="chat-panel-header">
+                <div class="chat-header-info">
+                    <div class="chat-avatar-mini">🤖</div>
+                    <div class="chat-header-text">
+                        <span class="chat-header-title">Forge AI</span>
+                        <span class="chat-header-status">
+                            <span class="status-dot"></span> Online
+                        </span>
+                    </div>
+                </div>
+                <button class="chat-close-btn" id="forge-chat-close" aria-label="Close Chat">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="chat-panel-messages" id="forge-chat-messages">
+                <!-- Messages populated dynamically -->
+            </div>
+            <form class="chat-panel-input-form" id="forge-chat-form">
+                <input type="text" placeholder="Ask about download, support, community..." id="forge-chat-input" required autocomplete="off">
+                <button type="submit" class="chat-send-btn" aria-label="Send Message">
+                    <i data-lucide="send"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Main script -->
+    <script src="index.js"></script>
+</body>
+</html>
