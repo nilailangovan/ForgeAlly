@@ -1,0 +1,22 @@
+{
+  "name": "forgeally-backend",
+  "version": "1.0.0",
+  "description": "Backend for ForgeAlly using Node.js, Express, MySQL, and Twilio",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.18.1",
+    "bcrypt": "^5.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.9.2",
+    "pg": "^8.22.0",
+    "twilio": "^5.0.4"
+  }
+}

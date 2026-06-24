@@ -733,4 +733,707 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    // ----------------------------------------------------
+    // 11. Backend API Integration (Auth, Register, SMS OTP)
+    // ----------------------------------------------------
+
+    // Reusable Toast Notification System
+    function showToast(title, desc, type = 'success') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icon = type === 'success' ? 'check-circle' : 'alert-circle';
+        const iconColor = type === 'success' ? '#34c759' : '#ff3b30';
+        
+        toast.innerHTML = `
+            <div class="toast-icon" style="color: ${iconColor}; display: flex; align-items: center;">
+                <i data-lucide="${icon}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-desc">${desc}</div>
+            </div>
+        `;
+        
+        container.appendChild(toast);
+        if (window.lucide) {
+            window.lucide.createIcons();
+        }
+        
+        setTimeout(() => {
+            toast.style.animation = 'toast-fade-out 0.25s ease forwards';
+            setTimeout(() => {
+                toast.remove();
+            }, 250);
+        }, 4000);
+    }
+
+    // Inline field-level error helper
+    function showError(elementId, message) {
+        const errorEl = document.getElementById(elementId);
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+    }
+    
+    // Clear all inline error messages
+    function clearAllErrors() {
+        document.querySelectorAll('.form-error-msg').forEach(el => {
+            el.textContent = '';
+            el.style.display = 'none';
+        });
+    }
+
+    // Toggle Login and Register standard forms
+    const linkShowRegister = document.getElementById('link-show-register');
+    const linkShowLogin = document.getElementById('link-show-login');
+    const loginViewStandard = document.getElementById('login-view-standard');
+    const registerViewStandard = document.getElementById('register-view-standard');
+
+    if (linkShowRegister && linkShowLogin && loginViewStandard && registerViewStandard) {
+        linkShowRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearAllErrors();
+            loginViewStandard.style.display = 'none';
+            registerViewStandard.style.display = 'block';
+        });
+
+        linkShowLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            clearAllErrors();
+            registerViewStandard.style.display = 'none';
+            loginViewStandard.style.display = 'block';
+        });
+    }
+
+    // Standard Password-based Register Integration
+    const registerForm = document.getElementById('standard-register-form');
+    if (registerForm) {
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAllErrors();
+
+            const username = document.getElementById('register-username').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-password').value;
+            
+            const countrySelect = document.getElementById('register-phone-country');
+            const phoneInput = document.getElementById('register-phone').value.trim();
+            const phone = countrySelect.value + phoneInput.replace(/\D/g, ''); // strip non-numeric
+
+            try {
+                const response = await fetch('http://localhost:3000/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password, phone })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errText = data.error || 'Registration failed.';
+                    if (errText.toLowerCase().includes('username')) {
+                        showError('register-username-error', errText);
+                    } else if (errText.toLowerCase().includes('email')) {
+                        showError('register-email-error', errText);
+                    } else if (errText.toLowerCase().includes('phone')) {
+                        showError('register-phone-error', errText);
+                    } else {
+                        showError('register-phone-error', errText);
+                    }
+                    showToast('Registration Failed', errText, 'error');
+                } else {
+                    showToast('Success!', 'Registration successful. You can log in now.');
+                    registerForm.reset();
+                    // Toggle view back to login
+                    registerViewStandard.style.display = 'none';
+                    loginViewStandard.style.display = 'block';
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network Error', 'Could not connect to the backend server.', 'error');
+            }
+        });
+    }
+
+    // Standard Password-based Login Integration
+    const loginForm = document.getElementById('standard-login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearAllErrors();
+
+            const username = document.getElementById('login-user').value.trim();
+            const password = document.getElementById('login-pass').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const errText = data.error || 'Login failed.';
+                    showError('login-pass-error', errText);
+                    showToast('Login Failed', errText, 'error');
+                } else {
+                    localStorage.setItem('forgeally_token', data.token);
+                    localStorage.setItem('forgeally_user', JSON.stringify(data.user));
+                    showToast('Login Successful', `Welcome back, ${data.user.username}!`);
+                    loginForm.reset();
+                    updateAuthUI();
+                    startGlitterWelcome();
+                    setTimeout(() => {
+                        navigateToSection('home');
+                        window.location.hash = '#home';
+                    }, 3800);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network Error', 'Could not connect to the backend server.', 'error');
+            }
+        });
+    }
+
+
+    // ── Phone OTP Login ──────────────────────────────────────────
+    (function initPhoneOtpLogin() {
+        const btnSendOtp    = document.getElementById('btn-send-otp');
+        const btnVerifyOtp  = document.getElementById('btn-verify-otp');
+        const btnResendOtp  = document.getElementById('btn-resend-otp');
+        const btnChangePhone= document.getElementById('btn-change-phone');
+        const stepPhone     = document.getElementById('otp-step-phone');
+        const stepVerify    = document.getElementById('otp-step-verify');
+        const devBox        = document.getElementById('otp-dev-box');
+        const devCode       = document.getElementById('otp-dev-code');
+        const phoneDisplay  = document.getElementById('otp-phone-display');
+        const digitInputs   = Array.from(document.querySelectorAll('.otp-digit-input'));
+        const countdownEl   = document.getElementById('otp-countdown');
+        const timerMsg      = document.getElementById('otp-timer-msg');
+        const resendBtn     = document.getElementById('btn-resend-otp');
+
+        if (!btnSendOtp) return; // guard — page might not have this section
+
+        let currentPhone = '';
+        let countdownTimer = null;
+
+        // ── Digit-input keyboard UX ──────────────────────────────
+        digitInputs.forEach((inp, i) => {
+            inp.addEventListener('input', (e) => {
+                const val = e.target.value.replace(/\D/g, '');
+                inp.value = val.slice(-1);
+                inp.classList.toggle('filled', inp.value !== '');
+                if (val && i < 5) digitInputs[i + 1].focus();
+                // Auto-verify if all filled
+                if (digitInputs.every(d => d.value)) btnVerifyOtp.click();
+            });
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !inp.value && i > 0) {
+                    digitInputs[i - 1].focus();
+                    digitInputs[i - 1].value = '';
+                    digitInputs[i - 1].classList.remove('filled');
+                }
+            });
+            inp.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+                if (paste.length >= 6) {
+                    digitInputs.forEach((d, idx) => {
+                        d.value = paste[idx] || '';
+                        d.classList.toggle('filled', !!d.value);
+                    });
+                    digitInputs[5].focus();
+                    if (digitInputs.every(d => d.value)) btnVerifyOtp.click();
+                }
+            });
+        });
+
+        // ── Countdown timer ──────────────────────────────────────
+        function startCountdown(seconds = 60) {
+            clearInterval(countdownTimer);
+            let remaining = seconds;
+            countdownEl.textContent = remaining;
+            timerMsg.style.display = 'inline';
+            resendBtn.style.display = 'none';
+
+            countdownTimer = setInterval(() => {
+                remaining--;
+                countdownEl.textContent = remaining;
+                if (remaining <= 0) {
+                    clearInterval(countdownTimer);
+                    timerMsg.style.display = 'none';
+                    resendBtn.style.display = 'inline';
+                }
+            }, 1000);
+        }
+
+        // ── Helper: set button loading state ────────────────────
+        function setLoading(btn, textId, spinnerId, loading) {
+            const textEl = document.getElementById(textId);
+            const spinEl = document.getElementById(spinnerId);
+            btn.disabled = loading;
+            if (textEl) textEl.style.opacity = loading ? '0' : '1';
+            if (spinEl) spinEl.style.display = loading ? 'inline-block' : 'none';
+        }
+
+        // ── Send OTP ─────────────────────────────────────────────
+        async function doSendOtp() {
+            clearAllErrors();
+            const countryCode = document.getElementById('phone-country-code').value;
+            const phoneRaw    = document.getElementById('login-phone').value.trim();
+
+            if (!phoneRaw) {
+                showError('login-phone-error', 'Please enter your phone number.');
+                return;
+            }
+
+            currentPhone = countryCode + phoneRaw.replace(/\D/g, '');
+            setLoading(btnSendOtp, 'btn-send-otp-text', 'btn-send-otp-spinner', true);
+
+            try {
+                const resp = await fetch('http://localhost:3000/api/send-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: currentPhone })
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    const errText = data.error || 'Failed to send OTP.';
+                    showError('login-phone-error', errText);
+                    showToast('SMS Error', errText, 'error');
+                } else {
+                    // Show step 2
+                    stepPhone.style.display  = 'none';
+                    stepVerify.style.display = 'flex';
+                    if (phoneDisplay) phoneDisplay.textContent = currentPhone;
+
+                    if (data.otp) {
+                        // ── Dev mode: display OTP and auto-fill ──────────
+                        devCode.textContent = data.otp;
+                        devBox.style.display = 'flex';
+                        data.otp.split('').forEach((ch, idx) => {
+                            if (digitInputs[idx]) {
+                                digitInputs[idx].value = ch;
+                                digitInputs[idx].classList.add('filled');
+                            }
+                        });
+                        showToast('Dev Mode', `No SMS service configured. Code: ${data.otp}`, 'success');
+                    } else {
+                        // ── Real SMS sent: clear inputs, hide dev box ────
+                        devBox.style.display = 'none';
+                        digitInputs.forEach(d => { d.value = ''; d.classList.remove('filled'); });
+                        showToast('📱 OTP Sent!', `A 6-digit code was sent to ${currentPhone}. Enter it below.`, 'success');
+                    }
+
+                    startCountdown(60);
+                    digitInputs[0].focus();
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network Error', 'Could not reach the server.', 'error');
+            } finally {
+                setLoading(btnSendOtp, 'btn-send-otp-text', 'btn-send-otp-spinner', false);
+            }
+        }
+
+        // ── Verify OTP ───────────────────────────────────────────
+        async function doVerifyOtp() {
+            clearAllErrors();
+            const otp = digitInputs.map(d => d.value).join('');
+            if (otp.length < 6) {
+                showError('login-otp-error', 'Please enter the complete 6-digit code.');
+                return;
+            }
+
+            setLoading(btnVerifyOtp, 'btn-verify-otp-text', 'btn-verify-otp-spinner', true);
+
+            try {
+                const resp = await fetch('http://localhost:3000/api/verify-otp', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ phone: currentPhone, otp })
+                });
+                const data = await resp.json();
+
+                if (!resp.ok) {
+                    const errText = data.error || 'OTP verification failed.';
+                    showError('login-otp-error', errText);
+                    showToast('Verification Failed', errText, 'error');
+                    // Shake digits
+                    document.getElementById('otp-digits-row').classList.add('otp-shake');
+                    setTimeout(() => document.getElementById('otp-digits-row').classList.remove('otp-shake'), 500);
+                } else {
+                    localStorage.setItem('forgeally_token', data.token);
+                    localStorage.setItem('forgeally_user', JSON.stringify(data.user));
+                    clearInterval(countdownTimer);
+                    showToast('Phone Verified', 'Welcome to ForgeAlly!', 'success');
+                    updateAuthUI();
+                    startGlitterWelcome();
+                    setTimeout(() => {
+                        navigateToSection('home');
+                        window.location.hash = '#home';
+                    }, 3800);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network Error', 'Could not reach the server.', 'error');
+            } finally {
+                setLoading(btnVerifyOtp, 'btn-verify-otp-text', 'btn-verify-otp-spinner', false);
+            }
+        }
+
+        // ── Reset to step 1 ──────────────────────────────────────
+        function resetPhoneFlow() {
+            clearInterval(countdownTimer);
+            currentPhone = '';
+            stepPhone.style.display  = 'flex';
+            stepVerify.style.display = 'none';
+            devBox.style.display     = 'none';
+            devCode.textContent      = '------';
+            digitInputs.forEach(d => { d.value = ''; d.classList.remove('filled'); });
+            document.getElementById('login-phone').value = '';
+            clearAllErrors();
+        }
+
+        // ── Wire events ──────────────────────────────────────────
+        btnSendOtp.addEventListener('click', doSendOtp);
+        btnVerifyOtp.addEventListener('click', doVerifyOtp);
+        if (btnResendOtp) btnResendOtp.addEventListener('click', (e) => { e.preventDefault(); doSendOtp(); });
+        if (btnChangePhone) btnChangePhone.addEventListener('click', (e) => { e.preventDefault(); resetPhoneFlow(); });
+
+        // Also allow Enter key on phone input
+        const phoneInput = document.getElementById('login-phone');
+        if (phoneInput) phoneInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doSendOtp(); }});
+    })();
+
+
+    // 12. Persistent Authentication UI and Logout
+    function updateAuthUI() {
+        const userStr = localStorage.getItem('forgeally_user');
+        const navLogin = document.getElementById('nav-login');
+        const linkLogout = document.getElementById('link-logout');
+        
+        if (userStr) {
+            try {
+                if (navLogin) navLogin.style.display = 'none';
+                if (linkLogout) linkLogout.style.display = 'inline-flex';
+            } catch (e) {
+                console.error(e);
+            }
+        } else {
+            if (navLogin) navLogin.style.display = 'inline-flex';
+            if (linkLogout) linkLogout.style.display = 'none';
+        }
+    }
+
+    // Call updateAuthUI on initialization
+    updateAuthUI();
+
+    // Logout Click Event Listener
+    const linkLogout = document.getElementById('link-logout');
+    if (linkLogout) {
+        linkLogout.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.removeItem('forgeally_token');
+            localStorage.removeItem('forgeally_user');
+            showToast('Logged Out', 'You have been successfully logged out.');
+            updateAuthUI();
+            navigateToSection('login');
+            window.location.hash = '#login';
+        });
+    }
+
+    // 13. QR Code Twilio OTP Login Simulation
+    const qrView = document.getElementById('phone-qr-view');
+    const mockModal = document.getElementById('mobile-mockup-modal');
+    const mockOverlay = document.getElementById('mobile-mockup-overlay');
+    const btnMockCancel = document.getElementById('btn-phone-mock-cancel');
+    const mockLoginForm = document.getElementById('phone-mock-login-form');
+    const mockNumberGroup = document.getElementById('phone-mock-number-group');
+    const mockOtpGroup = document.getElementById('phone-mock-otp-group');
+    const btnMockSubmit = document.getElementById('btn-phone-mock-submit');
+    const mockPhoneInput = document.getElementById('phone-mock-number');
+    const mockOtpInput = document.getElementById('phone-mock-otp');
+    
+    let isMockOtpSent = false;
+    let mockPhoneVal = '';
+
+    if (qrView && mockModal && mockOverlay && btnMockCancel) {
+        // Open mock mobile on QR Click
+        qrView.addEventListener('click', () => {
+            mockModal.style.display = 'flex';
+            resetMockPhoneForm();
+        });
+
+        // Close mock mobile
+        mockOverlay.addEventListener('click', () => {
+            mockModal.style.display = 'none';
+        });
+        btnMockCancel.addEventListener('click', () => {
+            mockModal.style.display = 'none';
+        });
+
+        function resetMockPhoneForm() {
+            isMockOtpSent = false;
+            mockPhoneVal = '';
+            if (mockOtpGroup) mockOtpGroup.style.display = 'none';
+            if (mockNumberGroup) mockNumberGroup.style.display = 'block';
+            if (mockPhoneInput) {
+                mockPhoneInput.value = '';
+                mockPhoneInput.disabled = false;
+            }
+            if (mockOtpInput) {
+                mockOtpInput.value = '';
+                mockOtpInput.removeAttribute('required');
+            }
+            if (btnMockSubmit) {
+                btnMockSubmit.textContent = 'Send Code';
+                btnMockSubmit.className = 'btn-primary phone-btn';
+            }
+            clearMockErrors();
+        }
+
+        function clearMockErrors() {
+            const errNum = document.getElementById('phone-mock-number-error');
+            const errOtp = document.getElementById('phone-mock-otp-error');
+            if (errNum) { errNum.textContent = ''; errNum.style.display = 'none'; }
+            if (errOtp) { errOtp.textContent = ''; errOtp.style.display = 'none'; }
+        }
+
+        function showMockError(elementId, msg) {
+            const errEl = document.getElementById(elementId);
+            if (errEl) {
+                errEl.textContent = msg;
+                errEl.style.display = 'block';
+            }
+        }
+
+        // Handle Form Submit
+        if (mockLoginForm) {
+            mockLoginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                clearMockErrors();
+
+                if (!isMockOtpSent) {
+                    // Phase 1: Send OTP via Twilio
+                    const phoneRaw = mockPhoneInput.value.trim();
+                    mockPhoneVal = '+91' + phoneRaw.replace(/\D/g, ''); // standard IN prefix
+
+                    try {
+                        const response = await fetch('http://localhost:3000/api/send-otp', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: mockPhoneVal })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            const errText = data.error || 'Failed to send OTP.';
+                            showMockError('phone-mock-number-error', errText);
+                            showToast('SMS Error', errText, 'error');
+                        } else {
+                            if (data.otp) {
+                                showToast('OTP Sent (Dev Mode)', `Your verification code is: ${data.otp}`, 'success');
+                                if (mockOtpInput) mockOtpInput.value = data.otp;
+                            } else {
+                                showToast('OTP Sent', 'Check your phone or server logs for the 6-digit code.');
+                            }
+                            isMockOtpSent = true;
+                            if (mockOtpGroup) mockOtpGroup.style.display = 'block';
+                            if (mockOtpInput) mockOtpInput.setAttribute('required', 'true');
+                            if (mockPhoneInput) mockPhoneInput.disabled = true;
+                            if (btnMockSubmit) {
+                                btnMockSubmit.textContent = 'Approve Login';
+                            }
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showToast('Network Error', 'Could not connect to the backend server.', 'error');
+                    }
+                } else {
+                    // Phase 2: Verify OTP and log in on desktop!
+                    const otp = mockOtpInput.value.trim();
+
+                    try {
+                        const response = await fetch('http://localhost:3000/api/verify-otp', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ phone: mockPhoneVal, otp })
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            const errText = data.error || 'Invalid or expired OTP.';
+                            showMockError('phone-mock-otp-error', errText);
+                            showToast('Verification Failed', errText, 'error');
+                        } else {
+                            localStorage.setItem('forgeally_token', data.token);
+                            localStorage.setItem('forgeally_user', JSON.stringify(data.user));
+                            showToast('Login Successful', `Welcome back! Mobile verified.`);
+                            mockModal.style.display = 'none';
+                            updateAuthUI();
+                            startGlitterWelcome();
+                            setTimeout(() => {
+                                navigateToSection('home');
+                                window.location.hash = '#home';
+                            }, 3800);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        showToast('Network Error', 'Could not connect to the backend server.', 'error');
+                    }
+                }
+            });
+        }
+    }
+
+    // 14. Glitter Splash Canvas Animation
+    let glitterAnimationId = null;
+    function startGlitterWelcome() {
+        const overlay = document.getElementById('welcome-glitter-overlay');
+        const canvas = document.getElementById('glitter-canvas');
+        if (!overlay || !canvas) return;
+
+        if (glitterAnimationId) {
+            cancelAnimationFrame(glitterAnimationId);
+        }
+
+        overlay.style.display = 'flex';
+        overlay.style.opacity = '0';
+        
+        setTimeout(() => {
+            overlay.style.opacity = '1';
+        }, 10);
+
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', onResize);
+        function onResize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 2 + Math.random() * 8;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed - (1 + Math.random() * 3);
+                this.gravity = 0.08 + Math.random() * 0.08;
+                this.friction = 0.98;
+                
+                const colors = [
+                    '#ff007f', // pink
+                    '#0071e3', // blue
+                    '#a259ff', // purple
+                    '#ffc000', // gold
+                    '#ffffff', // white
+                    '#00f2fe'  // cyan
+                ];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.size = 2 + Math.random() * 6;
+                this.alpha = 1;
+                this.decay = 0.01 + Math.random() * 0.015;
+                this.rotation = Math.random() * Math.PI;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+                this.isStar = Math.random() > 0.4;
+            }
+
+            update() {
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= this.decay;
+                this.rotation += this.rotationSpeed;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowBlur = this.size * 2;
+                ctx.shadowColor = this.color;
+
+                if (this.isStar) {
+                    ctx.beginPath();
+                    for (let i = 0; i < 4; i++) {
+                        ctx.lineTo(0, -this.size * 1.5);
+                        ctx.rotate(Math.PI / 2);
+                        ctx.lineTo(0, -this.size / 4);
+                        ctx.rotate(Math.PI / 2);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        const particles = [];
+        const centerX = width / 2;
+        const centerY = height / 2;
+        for (let i = 0; i < 200; i++) {
+            particles.push(new Particle(centerX, centerY));
+        }
+
+        let spawnTimer = 0;
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            spawnTimer++;
+            if (spawnTimer % 2 === 0 && particles.length < 300) {
+                for (let i = 0; i < 3; i++) {
+                    particles.push(new Particle(centerX, centerY));
+                }
+            }
+
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw();
+                if (p.alpha <= 0 || p.y > height) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            glitterAnimationId = requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        setTimeout(() => {
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+                cancelAnimationFrame(glitterAnimationId);
+                glitterAnimationId = null;
+                window.removeEventListener('resize', onResize);
+            }, 500);
+        }, 4000);
+    }
 });

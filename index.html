@@ -35,6 +35,9 @@
                 <a href="#login" id="nav-login" style="display: inline-flex; align-items: center; gap: 4px;">
                     <i data-lucide="log-in" style="width: 14px; height: 14px;"></i> Login
                 </a>
+                <a href="#" id="link-logout" style="display: none; align-items: center; gap: 4px;">
+                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Logout
+                </a>
             </nav>
         </div>
     </header>
@@ -577,51 +580,59 @@
                 <div class="login-modal-container">
                     <!-- Left: Standard Username/Password Login -->
                     <div class="login-form-side">
-                        <div class="login-header">
-                            <span class="logo-text">ForgeAlly</span>
-                            <h2>Welcome back!</h2>
-                            <p>We're so excited to see you again!</p>
-                        </div>
-                        <form class="login-form" onsubmit="event.preventDefault(); alert('Logged in successfully!');">
-                            <div class="form-group">
-                                <label for="login-user">Email or Username</label>
-                                <input type="text" id="login-user" required>
+                        <!-- Standard Login View -->
+                        <div id="login-view-standard">
+                            <div class="login-header">
+                                <span class="logo-text">ForgeAlly</span>
+                                <h2>Welcome back!</h2>
+                                <p>We're so excited to see you again!</p>
                             </div>
-                            <div class="form-group">
-                                <label for="login-pass">Password</label>
-                                <input type="password" id="login-pass" required>
-                            </div>
-                            <a href="#" class="forgot-pass-link" onclick="event.preventDefault(); alert('Password reset link sent to your email.');">Forgot your password?</a>
-                            <button type="submit" class="btn-primary login-btn">Log In</button>
-                            <span class="register-link">Need an account? <a href="#" onclick="event.preventDefault(); alert('Registration system coming soon!');">Register</a></span>
-                        </form>
-                    </div>
-
-                    <!-- Divider -->
-                    <div class="login-modal-divider"></div>
-
-                    <!-- Right: Login via Phone QR / SMS -->
-                    <div class="login-phone-side">
-                        <div class="login-header">
-                            <h3>Log in with Phone</h3>
-                            <p>Enter your phone number or scan the QR code to log in instantly.</p>
-                        </div>
-                        
-                        <!-- Tabs to choose Phone SMS or QR Code -->
-                        <div class="phone-tabs">
-                            <button class="phone-tab-btn active" id="btn-phone-sms">SMS Login</button>
-                            <button class="phone-tab-btn" id="btn-phone-qr">QR Code</button>
-                        </div>
-
-                        <!-- SMS Login form -->
-                        <div class="phone-sms-container" id="phone-sms-view">
-                            <form class="login-form" onsubmit="event.preventDefault(); alert('Verification SMS code sent!');">
+                            <form class="login-form" id="standard-login-form">
                                 <div class="form-group">
-                                    <label for="login-phone">Phone Number</label>
+                                    <label for="login-user">Email or Username</label>
+                                    <input type="text" id="login-user" required>
+                                    <span class="form-error-msg" id="login-user-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="login-pass">Password</label>
+                                    <input type="password" id="login-pass" required>
+                                    <span class="form-error-msg" id="login-pass-error"></span>
+                                </div>
+                                <a href="#" class="forgot-pass-link" onclick="event.preventDefault(); alert('Password reset link sent to your email.');">Forgot your password?</a>
+                                <button type="submit" class="btn-primary login-btn">Log In</button>
+                                <span class="register-link">Need an account? <a href="#" id="link-show-register">Register</a></span>
+                            </form>
+                        </div>
+
+                        <!-- Standard Register View -->
+                        <div id="register-view-standard" style="display: none;">
+                            <div class="login-header">
+                                <span class="logo-text">ForgeAlly</span>
+                                <h2>Create an account</h2>
+                                <p>Join your peers on the ultimate communication platform!</p>
+                            </div>
+                            <form class="login-form" id="standard-register-form">
+                                <div class="form-group">
+                                    <label for="register-username">Username</label>
+                                    <input type="text" id="register-username" required>
+                                    <span class="form-error-msg" id="register-username-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="register-email">Email Address</label>
+                                    <input type="email" id="register-email" required>
+                                    <span class="form-error-msg" id="register-email-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="register-password">Password</label>
+                                    <input type="password" id="register-password" required>
+                                    <span class="form-error-msg" id="register-password-error"></span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="register-phone">Phone Number</label>
                                     <div class="phone-input-group">
-                                        <select id="phone-country-code" class="phone-country-select">
+                                        <select id="register-phone-country" class="phone-country-select">
                                             <option value="+1" data-placeholder="(555) 000-0000">🇺🇸 +1</option>
-                                            <option value="+91" data-placeholder="98765 43210">🇮🇳 +91</option>
+                                            <option value="+91" data-placeholder="98765 43210" selected>🇮🇳 +91</option>
                                             <option value="+44" data-placeholder="7911 123456">🇬🇧 +44</option>
                                             <option value="+1" data-placeholder="(555) 000-0000">🇨🇦 +1</option>
                                             <option value="+49" data-placeholder="170 1234567">🇩🇪 +49</option>
@@ -633,43 +644,91 @@
                                             <option value="+27" data-placeholder="082 123 4567">🇿🇦 +27</option>
                                             <option value="+971" data-placeholder="50 123 4567">🇦🇪 +971</option>
                                         </select>
-                                        <input type="tel" id="login-phone" placeholder="(555) 000-0000" required>
+                                        <input type="tel" id="register-phone" placeholder="98765 43210" required>
                                     </div>
+                                    <span class="form-error-msg" id="register-phone-error"></span>
                                 </div>
-                                <button type="submit" class="btn-secondary login-btn">Send Code</button>
+                                <button type="submit" class="btn-primary login-btn">Register</button>
+                                <span class="register-link">Already have an account? <a href="#" id="link-show-login">Log In</a></span>
                             </form>
                         </div>
+                    </div>
 
-                        <!-- QR Code Container -->
-                        <div class="phone-qr-container" id="phone-qr-view" style="display: none;">
-                            <div class="mock-qr-code">
-                                <svg viewBox="0 0 100 100" class="qr-svg">
-                                    <rect width="100" height="100" fill="white"/>
-                                    <rect x="10" y="10" width="20" height="20" fill="black"/>
-                                    <rect x="13" y="13" width="14" height="14" fill="white"/>
-                                    <rect x="16" y="16" width="8" height="8" fill="black"/>
-                                    
-                                    <rect x="70" y="10" width="20" height="20" fill="black"/>
-                                    <rect x="73" y="13" width="14" height="14" fill="white"/>
-                                    <rect x="76" y="16" width="8" height="8" fill="black"/>
-                                    
-                                    <rect x="10" y="70" width="20" height="20" fill="black"/>
-                                    <rect x="13" y="73" width="14" height="14" fill="white"/>
-                                    <rect x="16" y="76" width="8" height="8" fill="black"/>
+                    <!-- Divider -->
+                    <div class="login-modal-divider"></div>
 
-                                    <rect x="40" y="40" width="20" height="20" fill="black"/>
-                                    <rect x="45" y="45" width="10" height="10" fill="white"/>
-                                    
-                                    <rect x="40" y="15" width="5" height="15" fill="black"/>
-                                    <rect x="50" y="25" width="10" height="5" fill="black"/>
-                                    <rect x="15" y="45" width="15" height="5" fill="black"/>
-                                    <rect x="75" y="45" width="5" height="15" fill="black"/>
-                                    <rect x="45" y="75" width="15" height="5" fill="black"/>
-                                    <rect x="80" y="70" width="10" height="10" fill="black"/>
-                                </svg>
-                                <div class="qr-logo-overlay">FA</div>
+                    <!-- Right: Login via Phone OTP -->
+                    <div class="login-phone-side">
+                        <div class="login-header">
+                            <h3>Login with Phone</h3>
+                            <p>Enter your registered phone number to receive a one-time code.</p>
+                        </div>
+
+                        <!-- Step 1: Phone Number Entry -->
+                        <div id="otp-step-phone" class="otp-step">
+                            <div class="otp-step-label">
+                                <span class="otp-step-badge">1</span>
+                                <span>Enter your phone number</span>
                             </div>
-                            <span class="qr-instructions">Scan this with the <strong>ForgeAlly mobile app</strong> to log in instantly.</span>
+                            <div class="phone-input-group otp-phone-row">
+                                <select id="phone-country-code" class="phone-country-select">
+                                    <option value="+1">🇺🇸 +1</option>
+                                    <option value="+91" selected>🇮🇳 +91</option>
+                                    <option value="+44">🇬🇧 +44</option>
+                                    <option value="+1">🇨🇦 +1</option>
+                                    <option value="+49">🇩🇪 +49</option>
+                                    <option value="+33">🇫🇷 +33</option>
+                                    <option value="+81">🇯🇵 +81</option>
+                                    <option value="+61">🇦🇺 +61</option>
+                                    <option value="+65">🇸🇬 +65</option>
+                                    <option value="+55">🇧🇷 +55</option>
+                                    <option value="+27">🇿🇦 +27</option>
+                                    <option value="+971">🇦🇪 +971</option>
+                                </select>
+                                <input type="tel" id="login-phone" placeholder="98765 43210" class="otp-phone-input">
+                            </div>
+                            <span class="form-error-msg" id="login-phone-error"></span>
+                            <button class="btn-primary otp-send-btn" id="btn-send-otp" type="button">
+                                <span id="btn-send-otp-text">Send OTP</span>
+                                <span id="btn-send-otp-spinner" class="otp-spinner" style="display:none;"></span>
+                            </button>
+                        </div>
+
+                        <!-- Step 2: OTP Entry (hidden until code sent) -->
+                        <div id="otp-step-verify" class="otp-step" style="display:none;">
+                            <div class="otp-step-label">
+                                <span class="otp-step-badge">2</span>
+                                <span>Enter the code sent to <strong id="otp-phone-display"></strong></span>
+                            </div>
+
+                            <!-- Dev Mode OTP Display Box -->
+                            <div class="otp-dev-box" id="otp-dev-box" style="display:none;">
+                                <span class="otp-dev-label">🔑 Your OTP (Dev Mode)</span>
+                                <span class="otp-dev-code" id="otp-dev-code">------</span>
+                                <span class="otp-dev-note">No SMS sent — copy this code below</span>
+                            </div>
+
+                            <!-- 6-digit OTP inputs -->
+                            <div class="otp-digits-row" id="otp-digits-row">
+                                <input type="text" maxlength="1" class="otp-digit-input" id="otp-d0" inputmode="numeric" pattern="[0-9]">
+                                <input type="text" maxlength="1" class="otp-digit-input" id="otp-d1" inputmode="numeric" pattern="[0-9]">
+                                <input type="text" maxlength="1" class="otp-digit-input" id="otp-d2" inputmode="numeric" pattern="[0-9]">
+                                <input type="text" maxlength="1" class="otp-digit-input" id="otp-d3" inputmode="numeric" pattern="[0-9]">
+                                <input type="text" maxlength="1" class="otp-digit-input" id="otp-d4" inputmode="numeric" pattern="[0-9]">
+                                <input type="text" maxlength="1" class="otp-digit-input" id="otp-d5" inputmode="numeric" pattern="[0-9]">
+                            </div>
+                            <span class="form-error-msg" id="login-otp-error"></span>
+
+                            <button class="btn-primary otp-send-btn" id="btn-verify-otp" type="button">
+                                <span id="btn-verify-otp-text">Verify & Login</span>
+                                <span id="btn-verify-otp-spinner" class="otp-spinner" style="display:none;"></span>
+                            </button>
+
+                            <div class="otp-resend-row">
+                                <span class="otp-timer-msg" id="otp-timer-msg">Resend in <strong id="otp-countdown">60</strong>s</span>
+                                <a href="#" id="btn-resend-otp" class="forgot-pass-link" style="display:none;">Resend OTP</a>
+                                <a href="#" id="btn-change-phone" class="forgot-pass-link">Change Number</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -819,6 +878,56 @@
         </div>
     </div>
 
+    <!-- Simulated Phone Mockup for Twilio QR Code Verification -->
+    <div class="mobile-mockup-modal" id="mobile-mockup-modal" style="display: none;">
+        <div class="mobile-mockup-overlay" id="mobile-mockup-overlay"></div>
+        <div class="mobile-phone-body">
+            <div class="phone-speaker"></div>
+            <div class="phone-screen">
+                <div class="phone-header">
+                    <span class="phone-time">9:41</span>
+                    <div class="phone-icons">
+                        <i data-lucide="signal" style="width: 12px; height: 12px;"></i>
+                        <i data-lucide="wifi" style="width: 12px; height: 12px;"></i>
+                        <i data-lucide="battery" style="width: 14px; height: 14px;"></i>
+                    </div>
+                </div>
+                <div class="phone-content">
+                    <div class="phone-logo">ForgeAlly</div>
+                    <h4>Approve Login</h4>
+                    <p>A desktop browser is requesting access to your account.</p>
+                    
+                    <form id="phone-mock-login-form">
+                        <div class="form-group" id="phone-mock-number-group">
+                            <label for="phone-mock-number">Phone Number</label>
+                            <div class="phone-input-group">
+                                <span class="phone-prefix">+91</span>
+                                <input type="tel" id="phone-mock-number" placeholder="98765 43210" required>
+                            </div>
+                            <span class="form-error-msg" id="phone-mock-number-error"></span>
+                        </div>
+                        <div class="form-group" id="phone-mock-otp-group" style="display: none;">
+                            <label for="phone-mock-otp">Enter 6-Digit OTP</label>
+                            <input type="text" id="phone-mock-otp" placeholder="XXXXXX" maxlength="6" pattern="\d{6}">
+                            <span class="form-error-msg" id="phone-mock-otp-error"></span>
+                        </div>
+                        <button type="submit" class="btn-primary phone-btn" id="btn-phone-mock-submit">Send Code</button>
+                        <button type="button" class="btn-secondary phone-btn" id="btn-phone-mock-cancel" style="margin-top: 8px;">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Full Screen Welcome to ForgeAlly Overlay with Canvas Glitter -->
+    <div id="welcome-glitter-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000000; z-index: 99999; align-items: center; justify-content: center; overflow: hidden; opacity: 0; transition: opacity 0.5s ease;">
+        <canvas id="glitter-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+        <div style="position: relative; z-index: 10; text-align: center; display: flex; flex-direction: column; align-items: center; pointer-events: none;">
+            <h1 id="welcome-title-glow" style="font-family: var(--font-heading); font-weight: 800; font-size: 3.5rem; letter-spacing: -1.5px; color: #ffffff; text-shadow: 0 0 20px rgba(255, 255, 255, 0.4); margin-bottom: 24px; animation: welcomeTextPulse 2s infinite ease-in-out;">Welcome to ForgeAlly!</h1>
+        </div>
+    </div>
+
+    <!-- Toast notifications container -->
+    <div id="toast-container" class="toast-container"></div>
 
     <!-- Main script -->
     <script src="index.js"></script>
