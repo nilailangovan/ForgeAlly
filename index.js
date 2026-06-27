@@ -1436,4 +1436,588 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 500);
         }, 4000);
     }
+
+    // =====================================================
+    //  CREATE COMMUNITY MODULE
+    // =====================================================
+    (function initCommunityModule() {
+        const API_BASE = 'http://localhost:3000';
+
+        // ── DOM refs ──────────────────────────────────────────
+        const overlay         = document.getElementById('create-ally-overlay');
+        const modalCloseBtn   = document.getElementById('modal-close-btn');
+        const modalCancelBtn  = document.getElementById('modal-cancel-btn');
+        const openBtn         = document.getElementById('btn-open-create-ally');
+        const form            = document.getElementById('create-ally-form');
+        const submitBtn       = document.getElementById('modal-submit-btn');
+        const submitText      = document.getElementById('modal-submit-text');
+        const communityGrid   = document.querySelector('.community-grid');
+        const divider         = document.getElementById('user-communities-divider');
+        const searchInput     = document.getElementById('community-search-input');
+
+        // ── Emoji picker state ────────────────────────────────
+        let selectedEmoji = '🌐';
+        const emojiOptions    = document.querySelectorAll('.emoji-option');
+        const emojiCustom     = document.getElementById('ally-emoji-custom');
+
+        emojiOptions.forEach(opt => {
+            opt.addEventListener('click', () => {
+                emojiOptions.forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                selectedEmoji = opt.dataset.emoji;
+                if (emojiCustom) emojiCustom.value = '';
+            });
+            opt.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') opt.click();
+            });
+        });
+
+        if (emojiCustom) {
+            emojiCustom.addEventListener('input', () => {
+                const val = emojiCustom.value.trim();
+                if (val) {
+                    emojiOptions.forEach(o => o.classList.remove('selected'));
+                    selectedEmoji = val;
+                } else {
+                    // Revert to first option
+                    const first = document.querySelector('.emoji-option');
+                    if (first) { first.classList.add('selected'); selectedEmoji = first.dataset.emoji; }
+                }
+            });
+        }
+
+        // ── Color swatch picker state ─────────────────────────
+        let selectedColor = 'bg-gaming';
+        const swatches = document.querySelectorAll('.color-swatch');
+        swatches.forEach(sw => {
+            sw.addEventListener('click', () => {
+                swatches.forEach(s => s.classList.remove('selected'));
+                sw.classList.add('selected');
+                selectedColor = sw.dataset.color;
+            });
+        });
+
+        // ── Modal open/close ──────────────────────────────────
+        function openModal() {
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('ally-name').focus();
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            resetForm();
+        }
+
+        function resetForm() {
+            if (form) form.reset();
+            selectedEmoji = '🌐';
+            selectedColor = 'bg-gaming';
+            emojiOptions.forEach(o => o.classList.remove('selected'));
+            const first = document.querySelector('.emoji-option');
+            if (first) first.classList.add('selected');
+            swatches.forEach(s => s.classList.remove('selected'));
+            const firstSwatch = document.querySelector('.color-swatch');
+            if (firstSwatch) firstSwatch.classList.add('selected');
+            hideError('ally-name-error');
+            hideError('ally-desc-error');
+        }
+
+        if (openBtn) openBtn.addEventListener('click', () => {
+            const token = localStorage.getItem('forgeally_token');
+            if (!token) {
+                showToast('Login Required', 'Please log in to create an Ally community.', 'error');
+                return;
+            }
+            openModal();
+        });
+        if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
+        if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
+        if (overlay) overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) closeModal();
+        });
+
+        // ── Error helpers ─────────────────────────────────────
+        function showError(id, msg) {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = msg; el.style.display = 'block'; }
+        }
+        function hideError(id) {
+            const el = document.getElementById(id);
+            if (el) { el.textContent = ''; el.style.display = 'none'; }
+        }
+
+        // ── Show/hide Create Ally button based on auth ────────
+        function updateCreateAllyBtn() {
+            if (!openBtn) return;
+            const isLoggedIn = !!localStorage.getItem('forgeally_user');
+            openBtn.style.display = isLoggedIn ? 'inline-flex' : 'none';
+        }
+        updateCreateAllyBtn();
+
+        // Re-check whenever the Community section becomes visible
+        document.addEventListener('click', (e) => {
+            const communityNavLink = e.target.closest('a[href="#community"]');
+            if (communityNavLink) setTimeout(updateCreateAllyBtn, 50);
+        });
+        // Also recheck on auth changes (login / logout)
+        const origUpdateAuthUI = window._origUpdateAuthUI;
+        // Piggyback on localStorage changes triggered by login/logout
+        window.addEventListener('storage', updateCreateAllyBtn);
+
+        // ── Build an ally card HTML ───────────────────────────
+        function buildAllyCard(community) {
+            const tags = (community.tags || '').split(',')
+                .map(t => t.trim()).filter(Boolean)
+                .slice(0, 3)
+                .map(t => `<span class="tag-pill">${escapeHtml(t)}</span>`)
+                .join('');
+
+            const memberStr = community.member_count >= 1000
+                ? (community.member_count / 1000).toFixed(1) + 'k'
+                : community.member_count;
+            const onlineStr = community.online_count >= 1000
+                ? (community.online_count / 1000).toFixed(1) + 'k'
+                : community.online_count;
+
+            // Show Invite button if the logged-in user is the community creator
+            const currentUser = JSON.parse(localStorage.getItem('forgeally_user') || 'null');
+            const isCreator = currentUser && community.creator_id && Number(community.creator_id) === Number(currentUser.id);
+            const inviteBtn = isCreator
+                ? `<button class="btn-invite-members" data-id="${community.id}" data-name="${escapeHtml(community.name)}" data-emoji="${escapeHtml(community.emoji || '\uD83C\uDF10')}">
+                       <i data-lucide="user-plus"></i> Invite Members
+                   </button>`
+                : '';
+
+            return `
+            <div class="ally-card" data-community-id="${community.id}" data-community-name="${escapeHtml(community.name).toLowerCase()}">
+                <span class="ally-created-badge">Community</span>
+                <div class="ally-banner ${escapeHtml(community.banner_color || 'bg-code')}"></div>
+                <div class="ally-info">
+                    <div class="ally-avatar">${escapeHtml(community.emoji || '🌐')}</div>
+                    <div class="ally-tags">${tags}</div>
+                    <h5>${escapeHtml(community.name)}</h5>
+                    <p>${escapeHtml(community.description || '')}</p>
+                    <div class="ally-meta">
+                        <span><span class="online-indicator"></span> ${onlineStr} Online</span>
+                        <span>${memberStr} Members</span>
+                    </div>
+                    <button class="btn-ally-join" data-id="${community.id}">Join Ally</button>
+                </div>
+            </div>`;
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = String(str);
+            return div.innerHTML;
+        }
+
+        // ── Render dynamic communities ────────────────────────
+        function renderCommunities(communities) {
+            // Remove previously injected dynamic cards
+            communityGrid.querySelectorAll('[data-community-id]').forEach(el => el.remove());
+
+            if (!communities || communities.length === 0) {
+                if (divider) divider.style.display = 'none';
+                return;
+            }
+
+            if (divider) divider.style.display = 'flex';
+
+            communities.forEach(c => {
+                const tmp = document.createElement('div');
+                tmp.innerHTML = buildAllyCard(c);
+                const card = tmp.firstElementChild;
+                communityGrid.appendChild(card);
+
+                // Wire Join button
+                const joinBtn = card.querySelector('.btn-ally-join');
+                if (joinBtn) joinBtn.addEventListener('click', () => handleJoin(c.id, joinBtn));
+
+                // Wire Invite button (creators only)
+                const inviteBtn = card.querySelector('.btn-invite-members');
+                if (inviteBtn) {
+                    inviteBtn.addEventListener('click', () => {
+                        window._openInviteModal(c.id, c.name, c.emoji || '\uD83C\uDF10');
+                    });
+                }
+            });
+            // Re-render lucide icons for newly added cards
+            lucide.createIcons();
+        }
+
+        // ── Load communities from API ─────────────────────────
+        async function loadCommunities() {
+            try {
+                const res = await fetch(`${API_BASE}/api/communities`);
+                if (!res.ok) throw new Error('Failed to load');
+                const data = await res.json();
+                renderCommunities(data.communities || []);
+            } catch (err) {
+                console.warn('Could not load communities:', err.message);
+            }
+        }
+
+        // Load on DOMContentLoaded + when navigating to Community
+        loadCommunities();
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('a[href="#community"]')) setTimeout(loadCommunities, 100);
+        });
+
+        // ── Join a community ──────────────────────────────────
+        async function handleJoin(communityId, btn) {
+            const token = localStorage.getItem('forgeally_token');
+            if (!token) {
+                showToast('Login Required', 'Please log in to join a community.', 'error');
+                return;
+            }
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Joining…';
+            try {
+                const res = await fetch(`${API_BASE}/api/communities/${communityId}/join`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    btn.textContent = '✓ Joined';
+                    btn.style.background = 'rgba(0,0,0,0.08)';
+                    btn.style.color = 'var(--text-muted)';
+                    showToast('Joined!', data.message || 'You have joined the community.', 'success');
+                    // Refresh cards to show updated member counts
+                    setTimeout(loadCommunities, 800);
+                } else {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                    showToast('Join Failed', data.error || 'Could not join the community.', 'error');
+                }
+            } catch (err) {
+                btn.textContent = originalText;
+                btn.disabled = false;
+                showToast('Network Error', 'Could not reach the server.', 'error');
+            }
+        }
+
+        // ── Form submission — Create Community ───────────────
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideError('ally-name-error');
+                hideError('ally-desc-error');
+
+                const name        = document.getElementById('ally-name').value.trim();
+                const description = document.getElementById('ally-desc').value.trim();
+                const tags        = document.getElementById('ally-tags').value.trim();
+
+                let valid = true;
+                if (!name) { showError('ally-name-error', 'Community name is required.'); valid = false; }
+                if (!description) { showError('ally-desc-error', 'Please describe your community.'); valid = false; }
+                if (!valid) return;
+
+                const token = localStorage.getItem('forgeally_token');
+                if (!token) {
+                    showToast('Login Required', 'Please log in to create an Ally.', 'error');
+                    closeModal();
+                    return;
+                }
+
+                // Show loading state
+                submitBtn.disabled = true;
+                submitText.textContent = 'Creating…';
+                submitBtn.insertAdjacentHTML('afterbegin', '<span class="btn-spinner"></span>');
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/communities`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            name,
+                            description,
+                            emoji: selectedEmoji,
+                            tags,
+                            banner_color: selectedColor
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        showToast('🎉 Ally Created!', `"${name}" is now live in the community!`, 'success');
+                        closeModal();
+                        loadCommunities();
+                        // Scroll to community section bottom
+                        setTimeout(() => {
+                            communityGrid.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                        }, 400);
+                    } else {
+                        if (data.error && data.error.toLowerCase().includes('name')) {
+                            showError('ally-name-error', data.error);
+                        } else {
+                            showToast('Error', data.error || 'Failed to create community.', 'error');
+                        }
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast('Network Error', 'Could not reach the server.', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitText.textContent = 'Create Ally';
+                    const spinner = submitBtn.querySelector('.btn-spinner');
+                    if (spinner) spinner.remove();
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        // ── Live search across all ally cards (static + dynamic) ──
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                const q = searchInput.value.toLowerCase().trim();
+                document.querySelectorAll('.ally-card').forEach(card => {
+                    const name = (card.querySelector('h5')?.textContent || '').toLowerCase();
+                    const desc = (card.querySelector('p')?.textContent || '').toLowerCase();
+                    const tags = Array.from(card.querySelectorAll('.tag-pill')).map(t => t.textContent.toLowerCase()).join(' ');
+                    const match = !q || name.includes(q) || desc.includes(q) || tags.includes(q);
+                    card.style.display = match ? '' : 'none';
+                });
+            });
+        }
+
+    })(); // end initCommunityModule
+
+    // =====================================================
+    //  INVITE MEMBERS MODULE
+    // =====================================================
+    (function initInviteModule() {
+        const API_BASE = 'http://localhost:3000';
+
+        const overlay       = document.getElementById('invite-ally-overlay');
+        const closeBtn      = document.getElementById('invite-modal-close-btn');
+        const cancelBtn     = document.getElementById('invite-modal-cancel-btn');
+        const form          = document.getElementById('invite-ally-form');
+        const emailsInput   = document.getElementById('invite-emails');
+        const statusList    = document.getElementById('invite-status-list');
+        const devBox        = document.getElementById('invite-dev-box');
+        const devLinks      = document.getElementById('invite-dev-links');
+        const submitBtn     = document.getElementById('invite-submit-btn');
+        const submitText    = document.getElementById('invite-submit-text');
+        const pillEmoji     = document.getElementById('invite-pill-emoji');
+        const pillName      = document.getElementById('invite-pill-name');
+
+        let activeCommunityId = null;
+
+        // ── Open / close ──────────────────────────────────────
+        function openInviteModal(communityId, communityName, communityEmoji) {
+            activeCommunityId = communityId;
+            if (pillEmoji) pillEmoji.textContent = communityEmoji || '\uD83C\uDF10';
+            if (pillName)  pillName.textContent  = communityName  || 'Community';
+            if (emailsInput) emailsInput.value = '';
+            if (statusList) { statusList.innerHTML = ''; statusList.style.display = 'none'; }
+            if (devBox) devBox.classList.remove('visible');
+            if (devLinks) devLinks.innerHTML = '';
+            hideInviteError();
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden';
+            if (emailsInput) emailsInput.focus();
+            lucide.createIcons();
+        }
+
+        function closeInviteModal() {
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            activeCommunityId = null;
+        }
+
+        // Expose open function globally so renderCommunities can call it
+        window._openInviteModal = openInviteModal;
+
+        if (closeBtn)  closeBtn.addEventListener('click', closeInviteModal);
+        if (cancelBtn) cancelBtn.addEventListener('click', closeInviteModal);
+        if (overlay)   overlay.addEventListener('click', (e) => { if (e.target === overlay) closeInviteModal(); });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && overlay && overlay.classList.contains('open')) closeInviteModal();
+        });
+
+        // ── Error helpers ─────────────────────────────────────
+        function showInviteError(msg) {
+            const el = document.getElementById('invite-emails-error');
+            if (el) { el.textContent = msg; el.style.display = 'block'; }
+        }
+        function hideInviteError() {
+            const el = document.getElementById('invite-emails-error');
+            if (el) { el.textContent = ''; el.style.display = 'none'; }
+        }
+
+        // ── Parse emails from textarea ────────────────────────
+        function parseEmails(raw) {
+            return raw
+                .split(/[,\n]+/)
+                .map(e => e.trim())
+                .filter(Boolean);
+        }
+
+        // ── Render per-email status list ──────────────────────
+        function renderStatusList(results) {
+            if (!statusList) return;
+            statusList.innerHTML = '';
+            results.forEach(r => {
+                const item = document.createElement('div');
+                item.className = 'invite-status-item';
+                const badgeClass = r.status === 'sent' ? 'status-badge-sent' : 'status-badge-failed';
+                const badgeText  = r.status === 'sent' ? '✓ Sent' : '✗ Failed';
+                item.innerHTML = `
+                    <span class="invite-status-email">${r.email}</span>
+                    <span class="status-badge ${badgeClass}">${badgeText}</span>`;
+                statusList.appendChild(item);
+            });
+            statusList.style.display = 'flex';
+        }
+
+        // ── Render dev-mode invite links ──────────────────────
+        function renderDevLinks(results) {
+            if (!devBox || !devLinks) return;
+            const devResults = results.filter(r => r.dev_link);
+            if (devResults.length === 0) return;
+            devLinks.innerHTML = '';
+            devResults.forEach(r => {
+                const wrap = document.createElement('div');
+                wrap.style.marginBottom = '10px';
+                wrap.innerHTML = `
+                    <div style="font-size:0.75rem;font-weight:600;color:#555;margin-bottom:2px;">${r.email}</div>
+                    <a class="invite-dev-link" href="${r.dev_link}" target="_blank">${r.dev_link}</a>
+                    <button class="invite-dev-copy-btn" data-link="${r.dev_link}">
+                        <i data-lucide="copy" style="width:12px;height:12px;"></i> Copy link
+                    </button>`;
+                devLinks.appendChild(wrap);
+            });
+            devBox.classList.add('visible');
+            // Wire copy buttons
+            devLinks.querySelectorAll('.invite-dev-copy-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(btn.dataset.link).then(() => {
+                        showToast('Copied!', 'Invite link copied to clipboard.', 'success');
+                    });
+                });
+            });
+            lucide.createIcons();
+        }
+
+        // ── Form submit ───────────────────────────────────────
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                hideInviteError();
+
+                const token = localStorage.getItem('forgeally_token');
+                if (!token) {
+                    showToast('Login Required', 'Please log in to send invitations.', 'error');
+                    closeInviteModal();
+                    return;
+                }
+
+                const rawEmails = emailsInput ? emailsInput.value : '';
+                const emails = parseEmails(rawEmails);
+
+                if (emails.length === 0) {
+                    showInviteError('Please enter at least one email address.');
+                    return;
+                }
+                if (emails.length > 10) {
+                    showInviteError('You can invite at most 10 people at once.');
+                    return;
+                }
+
+                // Loading state
+                submitBtn.disabled = true;
+                submitText.textContent = 'Sending…';
+                submitBtn.insertAdjacentHTML('afterbegin', '<span class="btn-spinner"></span>');
+
+                try {
+                    const res = await fetch(`${API_BASE}/api/communities/${activeCommunityId}/invite`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ emails })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        renderStatusList(data.results || []);
+                        if (!data.email_configured) {
+                            renderDevLinks(data.results || []);
+                        }
+                        const sentCount = (data.results || []).filter(r => r.status === 'sent').length;
+                        showToast(
+                            'Invitations Sent!',
+                            sentCount === emails.length
+                                ? `${sentCount} invitation${sentCount > 1 ? 's' : ''} sent successfully.`
+                                : `${sentCount} of ${emails.length} invitations sent.`,
+                            'success'
+                        );
+                        // Keep modal open so user sees results
+                        emailsInput.value = '';
+                    } else {
+                        showInviteError(data.error || 'Failed to send invitations.');
+                        showToast('Error', data.error || 'Failed to send invitations.', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast('Network Error', 'Could not reach the server.', 'error');
+                } finally {
+                    submitBtn.disabled = false;
+                    submitText.textContent = 'Send Invitations';
+                    const spinner = submitBtn.querySelector('.btn-spinner');
+                    if (spinner) spinner.remove();
+                    lucide.createIcons();
+                }
+            });
+        }
+
+    })(); // end initInviteModule
+
+    // =====================================================
+    //  ACCEPTED INVITE — URL param toast
+    // =====================================================
+    (function checkInviteAcceptParam() {
+        const params = new URLSearchParams(window.location.search);
+        const joined = params.get('joined');
+        const inviteError = params.get('invite_error');
+
+        if (joined) {
+            // Clean up the URL
+            history.replaceState(null, '', window.location.pathname + window.location.hash);
+            setTimeout(() => {
+                showToast(
+                    '🎉 Invitation Accepted!',
+                    `You have joined "${decodeURIComponent(joined)}"! Navigate to Community to explore.`,
+                    'success'
+                );
+            }, 600);
+        } else if (inviteError) {
+            history.replaceState(null, '', window.location.pathname + window.location.hash);
+            setTimeout(() => {
+                showToast(
+                    'Invite Link Issue',
+                    inviteError === 'expired'
+                        ? 'This invitation link has expired or already been used.'
+                        : 'There was an issue processing your invitation.',
+                    'error'
+                );
+            }, 600);
+        }
+    })();
+
 });

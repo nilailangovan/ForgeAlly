@@ -36,11 +36,55 @@ const initDb = async () => {
     );
   `;
 
+  const createCommunitiesTableQuery = `
+    CREATE TABLE IF NOT EXISTS communities (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL UNIQUE,
+      description TEXT,
+      emoji VARCHAR(20) DEFAULT '🌐',
+      tags VARCHAR(255),
+      banner_color VARCHAR(50) DEFAULT 'bg-code',
+      creator_id INTEGER REFERENCES users(id),
+      member_count INTEGER DEFAULT 1,
+      online_count INTEGER DEFAULT 0,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  const createCommunityMembersTableQuery = `
+    CREATE TABLE IF NOT EXISTS community_members (
+      id SERIAL PRIMARY KEY,
+      community_id INTEGER REFERENCES communities(id) ON DELETE CASCADE,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(community_id, user_id)
+    );
+  `;
+
+  const createCommunityInvitationsTableQuery = `
+    CREATE TABLE IF NOT EXISTS community_invitations (
+      id SERIAL PRIMARY KEY,
+      community_id INTEGER REFERENCES communities(id) ON DELETE CASCADE,
+      invited_email VARCHAR(255) NOT NULL,
+      invited_by INTEGER REFERENCES users(id),
+      token VARCHAR(128) UNIQUE NOT NULL,
+      status VARCHAR(20) DEFAULT 'pending',
+      expires_at TIMESTAMP NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
   try {
     await query(createUsersTableQuery);
     console.log('PostgreSQL "users" table initialized or already exists.');
     await query(createOtpTableQuery);
     console.log('PostgreSQL "otp_codes" table initialized or already exists.');
+    await query(createCommunitiesTableQuery);
+    console.log('PostgreSQL "communities" table initialized or already exists.');
+    await query(createCommunityMembersTableQuery);
+    console.log('PostgreSQL "community_members" table initialized or already exists.');
+    await query(createCommunityInvitationsTableQuery);
+    console.log('PostgreSQL "community_invitations" table initialized or already exists.');
   } catch (err) {
     console.error('Error initializing database tables:', err.message);
     // Since PostgreSQL might not be running or database might not exist yet,

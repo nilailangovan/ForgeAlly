@@ -343,14 +343,20 @@
             <div class="hero-content support-portal-container">
                 <!-- Sub-View: Discover -->
                 <div class="support-sub-view active" id="community-discover">
-                    <div class="support-header-block">
-                        <h1 class="support-title">Discover</h1>
-                        <p class="support-subtitle">Find your peers. Join public Allys on ForgeAlly.</p>
+                    <!-- Header row with title + Create button -->
+                    <div class="discover-header-row">
+                        <div class="support-header-block" style="margin-bottom:0;">
+                            <h1 class="support-title">Discover</h1>
+                            <p class="support-subtitle">Find your peers. Join public Allys on ForgeAlly.</p>
+                        </div>
+                        <button class="btn-create-ally" id="btn-open-create-ally" style="display:none;" aria-label="Create a new Ally community">
+                            <i data-lucide="plus-circle"></i> Create Ally
+                        </button>
                     </div>
                     <!-- Search Bar -->
                     <div class="help-search-wrapper">
                         <i data-lucide="search" class="search-icon"></i>
-                        <input type="text" placeholder="Search Allys by gaming, design, programming..." class="help-search-input">
+                        <input type="text" placeholder="Search Allys by gaming, design, programming..." class="help-search-input" id="community-search-input">
                     </div>
                     <!-- Allys Grid -->
                     <div class="community-grid">
@@ -456,6 +462,11 @@
                                 <button class="btn-ally-join">Join Ally</button>
                             </div>
                         </div>
+                        <!-- Divider for user-created communities -->
+                        <div class="community-grid-divider" id="user-communities-divider" style="display:none;">
+                            <span>Created by our users</span>
+                        </div>
+                        <!-- Dynamic community cards will be injected here by JS -->
                     </div>
                 </div>
 
@@ -923,6 +934,143 @@
         <canvas id="glitter-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
         <div style="position: relative; z-index: 10; text-align: center; display: flex; flex-direction: column; align-items: center; pointer-events: none;">
             <h1 id="welcome-title-glow" style="font-family: var(--font-heading); font-weight: 800; font-size: 3.5rem; letter-spacing: -1.5px; color: #ffffff; text-shadow: 0 0 20px rgba(255, 255, 255, 0.4); margin-bottom: 24px; animation: welcomeTextPulse 2s infinite ease-in-out;">Welcome to ForgeAlly!</h1>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         INVITE MEMBERS MODAL
+         ===================================================== -->
+    <div class="invite-ally-overlay" id="invite-ally-overlay" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title">
+        <div class="invite-ally-modal">
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h2 id="invite-modal-title">Invite Members</h2>
+                    <p>Send email invitations to join your Ally.</p>
+                </div>
+                <button class="modal-close-btn" id="invite-modal-close-btn" aria-label="Close invite modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <!-- Community context pill -->
+            <div class="invite-community-pill" id="invite-community-pill">
+                <span class="pill-emoji" id="invite-pill-emoji">🌐</span>
+                <span class="pill-name" id="invite-pill-name">Community</span>
+            </div>
+
+            <!-- Form -->
+            <form class="modal-form" id="invite-ally-form" novalidate>
+                <div class="form-group">
+                    <label for="invite-emails">Email Addresses</label>
+                    <textarea
+                        class="invite-email-textarea"
+                        id="invite-emails"
+                        placeholder="Enter email addresses, one per line or comma-separated&#10;e.g. alice@email.com&#10;bob@email.com"
+                        rows="4"
+                    ></textarea>
+                    <span class="invite-email-hint">Up to 10 emails at once. Invitations expire after 7 days.</span>
+                    <span class="form-error" id="invite-emails-error"></span>
+                </div>
+
+                <!-- Status results (shown after sending) -->
+                <div class="invite-status-list" id="invite-status-list" style="display:none;"></div>
+
+                <!-- Dev-mode link box (when email not configured) -->
+                <div class="invite-dev-box" id="invite-dev-box">
+                    <div class="invite-dev-box-title">⚡ Dev Mode — Email not configured</div>
+                    <div id="invite-dev-links"></div>
+                </div>
+
+                <!-- Actions -->
+                <div class="modal-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn-cancel" id="invite-modal-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="invite-submit-btn">
+                        <i data-lucide="send" style="width:15px;height:15px;"></i>
+                        <span id="invite-submit-text">Send Invitations</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         CREATE COMMUNITY MODAL
+         ===================================================== -->
+    <div class="create-ally-overlay" id="create-ally-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="create-ally-modal">
+            <!-- Header -->
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h2 id="modal-title">Create an Ally</h2>
+                    <p>Build a community for your peers, team, or passion.</p>
+                </div>
+                <button class="modal-close-btn" id="modal-close-btn" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form class="modal-form" id="create-ally-form" novalidate>
+
+                <!-- Community Name -->
+                <div class="form-group">
+                    <label for="ally-name">Community Name</label>
+                    <input type="text" id="ally-name" placeholder="e.g. DevForge, Design Lounge..." maxlength="60" autocomplete="off">
+                    <span class="form-error" id="ally-name-error"></span>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label for="ally-desc">Description</label>
+                    <textarea id="ally-desc" rows="3" placeholder="What is this community about?" maxlength="300"></textarea>
+                    <span class="form-error" id="ally-desc-error"></span>
+                </div>
+
+                <!-- Emoji -->
+                <div class="form-group">
+                    <label>Community Emoji</label>
+                    <div class="emoji-picker-row">
+                        <div class="emoji-option selected" data-emoji="🌐" tabindex="0" role="button" aria-label="Globe emoji">🌐</div>
+                        <div class="emoji-option" data-emoji="🎮" tabindex="0" role="button" aria-label="Gaming emoji">🎮</div>
+                        <div class="emoji-option" data-emoji="🎨" tabindex="0" role="button" aria-label="Design emoji">🎨</div>
+                        <div class="emoji-option" data-emoji="💻" tabindex="0" role="button" aria-label="Code emoji">💻</div>
+                        <div class="emoji-option" data-emoji="🤖" tabindex="0" role="button" aria-label="AI emoji">🤖</div>
+                        <div class="emoji-option" data-emoji="🎵" tabindex="0" role="button" aria-label="Music emoji">🎵</div>
+                        <div class="emoji-option" data-emoji="🍿" tabindex="0" role="button" aria-label="Cinema emoji">🍿</div>
+                        <div class="emoji-option" data-emoji="📚" tabindex="0" role="button" aria-label="Book emoji">📚</div>
+                        <input type="text" class="emoji-custom-input" id="ally-emoji-custom" placeholder="✏️" maxlength="2" aria-label="Custom emoji">
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="form-group">
+                    <label for="ally-tags">Tags <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:0.72rem;">(comma-separated)</span></label>
+                    <input type="text" id="ally-tags" placeholder="Gaming, Esports, Competitive..." maxlength="120" autocomplete="off">
+                </div>
+
+                <!-- Banner Color -->
+                <div class="form-group">
+                    <label>Banner Color</label>
+                    <div class="color-swatch-row">
+                        <button type="button" class="color-swatch swatch-gaming selected" data-color="bg-gaming" title="Gaming (Purple)" aria-label="Gaming purple banner"></button>
+                        <button type="button" class="color-swatch swatch-design" data-color="bg-design" title="Design (Pink)" aria-label="Design pink banner"></button>
+                        <button type="button" class="color-swatch swatch-code" data-color="bg-code" title="Code (Green)" aria-label="Code green banner"></button>
+                        <button type="button" class="color-swatch swatch-ai" data-color="bg-ai" title="AI (Blue)" aria-label="AI blue banner"></button>
+                        <button type="button" class="color-swatch swatch-cinema" data-color="bg-cinema" title="Cinema (Red)" aria-label="Cinema red banner"></button>
+                        <button type="button" class="color-swatch swatch-music" data-color="bg-music" title="Music (Purple)" aria-label="Music purple banner"></button>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn-primary" id="modal-submit-btn">
+                        <i data-lucide="plus-circle" style="width:16px;height:16px;"></i>
+                        <span id="modal-submit-text">Create Ally</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
